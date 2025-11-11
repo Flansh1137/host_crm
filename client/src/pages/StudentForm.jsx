@@ -4,34 +4,41 @@ const StudentForm = () => {
   const [name, setName] = useState("");
   const [course, setCourse] = useState("");
   const [msg, setMsg] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // NEW
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!name.trim() || !course.trim()) {
       setMsg("Fill both fields");
       setTimeout(() => setMsg(""), 3000);
       return;
     }
 
-    // PASTE YOUR /exec URL HERE
+    if (isSubmitting) return; // PREVENT DOUBLE CLICK
+    setIsSubmitting(true); // DISABLE BUTTON
+
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyJIf0XyOxDkJV8loq5MNae7unSc9xwRfEDJ5kWZmt-GTUgfCdEEWVCxsiMpCt59hv4/exec";
 
     const body = new URLSearchParams();
     body.append("name", name.trim());
     body.append("course", course.trim());
-    // NO DATE NEEDED — AUTO-GENERATED
 
     try {
       const res = await fetch(WEB_APP_URL, { method: "POST", body });
       const text = await res.text();
       setMsg(text);
+
       if (text === "SUCCESS") {
         setName("");
         setCourse("");
       }
     } catch {
       setMsg("No internet");
+    } finally {
+      setIsSubmitting(false); // RE-ENABLE AFTER DONE
     }
+
     setTimeout(() => setMsg(""), 4000);
   };
 
@@ -64,9 +71,14 @@ const StudentForm = () => {
           />
           <button
             type="submit"
-            className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700"
+            disabled={isSubmitting} // DISABLE WHEN SUBMITTING
+            className={`w-full py-3 rounded-lg font-bold transition ${
+              isSubmitting
+                ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                : "bg-purple-600 text-white hover:bg-purple-700"
+            }`}
           >
-            Mark Present
+            {isSubmitting ? "Submitting..." : "Mark Present"}
           </button>
         </form>
 
