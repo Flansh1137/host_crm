@@ -9,11 +9,10 @@ const StudentForm = () => {
     const urlParams = new URLSearchParams(window.location.search);
     let d = urlParams.get("date");
 
-    // 🧠 Normalize date format to DD-MM-YYYY (replace / with -)
+    // Normalize date format to DD-MM-YYYY
     if (d) {
       d = d.replace(/\//g, "-");
     } else {
-      // If no date in URL, use today's date in same format
       const today = new Date();
       d = today.toLocaleDateString("en-GB").split("/").join("-");
     }
@@ -27,8 +26,10 @@ const StudentForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.course) {
-      alert("Please fill all fields!");
+    setMessage("");
+
+    if (!formData.name.trim()) {
+      setMessage("⚠️ Please enter your name.");
       return;
     }
 
@@ -36,12 +37,12 @@ const StudentForm = () => {
       const scriptURL =
         "https://script.google.com/macros/s/AKfycbxXgNLeKL6Q3frAwENOLQkCU3csJ1_t3ru3fAdlcnFzyOi1n3pDvCJgaSoVQRMlfNhE/exec";
 
-      // ✅ Always send normalized DD-MM-YYYY date
+      // Always send normalized DD-MM-YYYY date
       const normalizedDate = date.replace(/\//g, "-");
 
-      await fetch(scriptURL, {
+      const response = await fetch(scriptURL, {
         method: "POST",
-        mode: "no-cors",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           name: formData.name.trim(),
           course: formData.course.trim(),
@@ -49,11 +50,20 @@ const StudentForm = () => {
         }),
       });
 
-      setMessage("✅ Attendance marked successfully!");
-      setFormData({ name: "", course: "" });
+      const text = await response.text();
+
+      // ✅ Handle Google Apps Script responses
+      if (text.includes("OK")) {
+        setMessage("✅ Attendance marked successfully!");
+        setFormData({ name: "", course: "" });
+      } else if (text.includes("Duplicate")) {
+        setMessage("⚠️ You have already marked attendance for this date.");
+      } else {
+        setMessage("❌ Unexpected response. Please try again.");
+      }
     } catch (error) {
-      console.error("Error!", error.message);
-      setMessage("❌ Failed to submit attendance!");
+      console.error("Error submitting attendance:", error);
+      setMessage("❌ Failed to submit attendance! Check your internet connection.");
     }
   };
 
@@ -63,6 +73,7 @@ const StudentForm = () => {
         <h1 className="text-2xl font-bold text-purple-700 mb-4 text-center">
           🧾 Attendance Form
         </h1>
+
         <p className="text-center text-gray-600 mb-4">
           Date: <strong>{date}</strong>
         </p>
@@ -74,7 +85,7 @@ const StudentForm = () => {
             value={formData.name}
             onChange={handleChange}
             placeholder="Full Name"
-            className="p-3 border rounded-lg"
+            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
           <input
             type="text"
@@ -82,7 +93,7 @@ const StudentForm = () => {
             value={formData.course}
             onChange={handleChange}
             placeholder="Course"
-            className="p-3 border rounded-lg"
+            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
           />
           <button
             type="submit"
@@ -93,7 +104,9 @@ const StudentForm = () => {
         </form>
 
         {message && (
-          <p className="mt-4 text-center font-semibold">{message}</p>
+          <p className="mt-4 text-center font-semibold text-gray-700">
+            {message}
+          </p>
         )}
       </div>
     </div>
