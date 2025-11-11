@@ -7,8 +7,18 @@ const StudentForm = () => {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const d = urlParams.get("date");
-    setDate(d || "Unknown Date");
+    let d = urlParams.get("date");
+
+    // 🧠 Normalize date format to DD-MM-YYYY (replace / with -)
+    if (d) {
+      d = d.replace(/\//g, "-");
+    } else {
+      // If no date in URL, use today's date in same format
+      const today = new Date();
+      d = today.toLocaleDateString("en-GB").split("/").join("-");
+    }
+
+    setDate(d);
   }, []);
 
   const handleChange = (e) => {
@@ -23,16 +33,22 @@ const StudentForm = () => {
     }
 
     try {
-      const scriptURL = "https://script.google.com/macros/s/AKfycbwwX1iS38ZNT9G1-ypGhtILG8ZjNOTvU1UW6nIa1PLgCbravMh5RpzrvxsACqXkJeIc/exec";
+      const scriptURL =
+        "https://script.google.com/macros/s/AKfycbxXgNLeKL6Q3frAwENOLQkCU3csJ1_t3ru3fAdlcnFzyOi1n3pDvCJgaSoVQRMlfNhE/exec";
+
+      // ✅ Always send normalized DD-MM-YYYY date
+      const normalizedDate = date.replace(/\//g, "-");
+
       await fetch(scriptURL, {
         method: "POST",
         mode: "no-cors",
         body: new URLSearchParams({
-          name: formData.name,
-          course: formData.course,
-          date: date,
+          name: formData.name.trim(),
+          course: formData.course.trim(),
+          date: normalizedDate,
         }),
       });
+
       setMessage("✅ Attendance marked successfully!");
       setFormData({ name: "", course: "" });
     } catch (error) {
