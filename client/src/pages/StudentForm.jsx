@@ -14,7 +14,7 @@ const StudentForm = () => {
     }
 
     // PASTE YOUR /exec URL HERE
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzJkM0vCNd3v_TR1C6JnlQKCPW-O_FhK5UW0VyHlztRwRmilq7IU26rlRgW6OZ5ZKw/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyJIf0XyOxDkJV8loq5MNae7unSc9xwRfEDJ5kWZmt-GTUgfCdEEWVCxsiMpCt59hv4/exec";
 
     const body = new URLSearchParams();
     body.append("name", name.trim());
