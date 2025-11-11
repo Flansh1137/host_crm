@@ -1,4 +1,3 @@
-// ==== StudentForm.jsx (React JSX only) ====
 import React, { useState, useEffect } from "react";
 
 const StudentForm = () => {
@@ -7,30 +6,21 @@ const StudentForm = () => {
   const [date, setDate] = useState("");
   const [msg, setMsg] = useState("");
 
-  // Read ?date= from URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const d = params.get("date");
-    if (d) {
-      setDate(d);
-    } else {
-      const today = new Date();
-      const dd = String(today.getDate()).padStart(2, "0");
-      const mm = String(today.getMonth() + 1).padStart(2, "0");
-      const yyyy = today.getFullYear();
-      setDate(`${dd}-${mm}-${yyyy}`);
-    }
+    setDate(d || new Date().toLocaleDateString("en-IN"));
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim() || !course.trim()) {
-      setMsg("Please fill Name and Course");
-      clearMsg();
+      setMsg("Fill both fields");
+      setTimeout(() => setMsg(""), 3000);
       return;
     }
 
-    // Replace with your Google Apps Script Web App /exec URL
+    // PASTE YOUR NEW /exec URL HERE
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxXgNLeKL6Q3frAwENOLQkCU3csJ1_t3ru3fAdlcnFzyOi1n3pDvCJgaSoVQRMlfNhE/exec";
 
     const body = new URLSearchParams();
@@ -49,13 +39,11 @@ const StudentForm = () => {
         setName("");
         setCourse("");
       }
-    } catch (err) {
-      setMsg("Network error");
+    } catch {
+      setMsg("No internet");
     }
-    clearMsg();
+    setTimeout(() => setMsg(""), 4000);
   };
-
-  const clearMsg = () => setTimeout(() => setMsg(""), 4000);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200 p-4">
@@ -86,20 +74,14 @@ const StudentForm = () => {
           />
           <button
             type="submit"
-            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
+            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700"
           >
-            Submit Attendance
+            Submit
           </button>
         </form>
 
         {msg && (
-          <p
-            className={`mt-4 text-center font-medium ${
-              msg.includes("SUCCESS") || msg.includes("MARKED")
-                ? "text-green-600"
-                : "text-red-600"
-            }`}
-          >
+          <p className={`mt-4 text-center font-medium ${msg === "SUCCESS" ? "text-green-600" : "text-red-600"}`}>
             {msg}
           </p>
         )}
