@@ -1,16 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 const StudentForm = () => {
   const [name, setName] = useState("");
   const [course, setCourse] = useState("");
-  const [date, setDate] = useState("");
   const [msg, setMsg] = useState("");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const d = params.get("date");
-    setDate(d || new Date().toLocaleDateString("en-IN"));
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,19 +13,16 @@ const StudentForm = () => {
       return;
     }
 
-    // PASTE YOUR NEW /exec URL HERE
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbysy6JruuONGlbVPllXJXIjI7cJLdm7HENxNypcj9WOWnNVbHDYTCXRJsIp5Bb9N3am/exec";
+    // PASTE YOUR /exec URL HERE
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4ysIuVumXjcxXX7M-v2GmV0q_SEQqopHJyjOC-SYFvQIA_zQzdQkhklhBjmH9HjTF/exec";
 
     const body = new URLSearchParams();
     body.append("name", name.trim());
     body.append("course", course.trim());
-    body.append("date", date);
+    // NO DATE NEEDED — AUTO-GENERATED
 
     try {
-      const res = await fetch(WEB_APP_URL, {
-        method: "POST",
-        body,
-      });
+      const res = await fetch(WEB_APP_URL, { method: "POST", body });
       const text = await res.text();
       setMsg(text);
       if (text === "SUCCESS") {
@@ -46,13 +36,13 @@ const StudentForm = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-purple-200 p-4">
-      <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center text-purple-700 mb-2">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 p-4">
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
+        <h1 className="text-2xl font-bold text-center text-purple-700 mb-4">
           Attendance
         </h1>
-        <p className="text-center text-sm text-gray-600 mb-6">
-          Date: <strong>{date}</strong>
+        <p className="text-center text-gray-600 mb-6">
+          Today: <strong>{new Date().toLocaleDateString("en-IN")}</strong>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -61,7 +51,7 @@ const StudentForm = () => {
             placeholder="Full Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
             required
           />
           <input
@@ -69,14 +59,14 @@ const StudentForm = () => {
             placeholder="Course"
             value={course}
             onChange={(e) => setCourse(e.target.value)}
-            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500"
             required
           />
           <button
             type="submit"
-            className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700"
+            className="w-full bg-purple-600 text-white py-3 rounded-lg font-bold hover:bg-purple-700"
           >
-            Submit
+            Mark Present
           </button>
         </form>
 
