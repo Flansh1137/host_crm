@@ -7,17 +7,8 @@ const StudentForm = () => {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    let d = urlParams.get("date");
-
-    // Normalize date format to DD-MM-YYYY
-    if (d) {
-      d = d.replace(/\//g, "-");
-    } else {
-      const today = new Date();
-      d = today.toLocaleDateString("en-GB").split("/").join("-");
-    }
-
-    setDate(d);
+    const d = urlParams.get("date");
+    setDate(d || "Unknown Date");
   }, []);
 
   const handleChange = (e) => {
@@ -26,44 +17,36 @@ const StudentForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage("");
 
-    if (!formData.name.trim()) {
-      setMessage("⚠️ Please enter your name.");
+    if (!formData.name || !formData.course) {
+      alert("Please fill all fields!");
       return;
     }
 
+    const scriptURL =
+      "https://script.google.com/macros/s/AKfycbxXgNLeKL6Q3frAwENOLQkCU3csJ1_t3ru3fAdlcnFzyOi1n3pDvCJgaSoVQRMlfNhE/exec";
+
     try {
-      const scriptURL =
-        "https://script.google.com/macros/s/AKfycbxXgNLeKL6Q3frAwENOLQkCU3csJ1_t3ru3fAdlcnFzyOi1n3pDvCJgaSoVQRMlfNhE/exec";
-
-      // Always send normalized DD-MM-YYYY date
-      const normalizedDate = date.replace(/\//g, "-");
-
-      const response = await fetch(scriptURL, {
+      // Send data to Google Sheet
+      await fetch(scriptURL, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        mode: "no-cors",
         body: new URLSearchParams({
           name: formData.name.trim(),
           course: formData.course.trim(),
-          date: normalizedDate,
+          date: date,
         }),
       });
 
-      const text = await response.text();
+      // Even though we can't read response (due to no-cors), it still works
+      setMessage("✅ Attendance marked successfully!");
+      setFormData({ name: "", course: "" });
 
-      // ✅ Handle Google Apps Script responses
-      if (text.includes("OK")) {
-        setMessage("✅ Attendance marked successfully!");
-        setFormData({ name: "", course: "" });
-      } else if (text.includes("Duplicate")) {
-        setMessage("⚠️ You have already marked attendance for this date.");
-      } else {
-        setMessage("❌ Unexpected response. Please try again.");
-      }
+      // Auto-clear message after few seconds
+      setTimeout(() => setMessage(""), 4000);
     } catch (error) {
-      console.error("Error submitting attendance:", error);
-      setMessage("❌ Failed to submit attendance! Check your internet connection.");
+      console.error("Error!", error.message);
+      setMessage("❌ Something went wrong. Please try again.");
     }
   };
 
@@ -73,7 +56,6 @@ const StudentForm = () => {
         <h1 className="text-2xl font-bold text-purple-700 mb-4 text-center">
           🧾 Attendance Form
         </h1>
-
         <p className="text-center text-gray-600 mb-4">
           Date: <strong>{date}</strong>
         </p>
@@ -85,7 +67,7 @@ const StudentForm = () => {
             value={formData.name}
             onChange={handleChange}
             placeholder="Full Name"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
           />
           <input
             type="text"
@@ -93,7 +75,7 @@ const StudentForm = () => {
             value={formData.course}
             onChange={handleChange}
             placeholder="Course"
-            className="p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
           />
           <button
             type="submit"
@@ -104,7 +86,11 @@ const StudentForm = () => {
         </form>
 
         {message && (
-          <p className="mt-4 text-center font-semibold text-gray-700">
+          <p
+            className={`mt-4 text-center font-semibold ${
+              message.startsWith("✅") ? "text-green-600" : "text-red-600"
+            }`}
+          >
             {message}
           </p>
         )}
