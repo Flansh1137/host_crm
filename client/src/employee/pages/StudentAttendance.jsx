@@ -11,7 +11,7 @@ const StudentAttendance = () => {
     setDate(formattedDate);
 
     // ✅ This URL includes date as query param
-    const formURL = `https://ss-crm.vercel.app/student-form?date=${encodeURIComponent(formattedDate)}`;
+    const formURL = `https://host-crm-gamma.vercel.app/student-form?date=${encodeURIComponent(formattedDate)}`;
     setQrValue(formURL);
   }, []);
 
