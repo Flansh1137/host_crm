@@ -3,12 +3,13 @@ import React, { useState, useEffect } from "react";
 const StudentForm = () => {
   const [date, setDate] = useState("");
   const [formData, setFormData] = useState({ name: "", course: "" });
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(null); // ✅ JSX-safe (no TypeScript)
 
+  // ---- Read ?date= from QR -------------------------------------------------
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const d = urlParams.get("date");
-    setDate(d || "Unknown Date");
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get("date");
+    setDate(d || new Date().toLocaleDateString("en-IN"));
   }, []);
 
   const handleChange = (e) => {
@@ -18,19 +19,19 @@ const StudentForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.course) {
-      alert("Please fill all fields!");
+    if (!formData.name.trim() || !formData.course.trim()) {
+      setMessage({ text: "Please fill all fields!", type: "error" });
       return;
     }
 
+    // ---- Your deployed Web App URL ---------------------------------------
     const scriptURL =
       "https://script.google.com/macros/s/AKfycbxXgNLeKL6Q3frAwENOLQkCU3csJ1_t3ru3fAdlcnFzyOi1n3pDvCJgaSoVQRMlfNhE/exec";
 
     try {
-      // Send data to Google Sheet
-      await fetch(scriptURL, {
+      const res = await fetch(scriptURL, {
         method: "POST",
-        mode: "no-cors",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           name: formData.name.trim(),
           course: formData.course.trim(),
@@ -38,15 +39,25 @@ const StudentForm = () => {
         }),
       });
 
-      // Even though we can't read response (due to no-cors), it still works
-      setMessage("✅ Attendance marked successfully!");
-      setFormData({ name: "", course: "" });
+      const result = await res.json();
 
-      // Auto-clear message after few seconds
-      setTimeout(() => setMessage(""), 4000);
-    } catch (error) {
-      console.error("Error!", error.message);
-      setMessage("❌ Something went wrong. Please try again.");
+      setMessage({
+        text: result.message || "Attendance submitted successfully!",
+        type: result.status === "error" ? "error" : "success",
+      });
+
+      if (result.status === "success") {
+        setFormData({ name: "", course: "" });
+      }
+
+      setTimeout(() => setMessage(null), 4000);
+    } catch (err) {
+      console.error(err);
+      setMessage({
+        text: "Network error – check your connection.",
+        type: "error",
+      });
+      setTimeout(() => setMessage(null), 4000);
     }
   };
 
@@ -54,10 +65,10 @@ const StudentForm = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-300 p-6">
       <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
         <h1 className="text-2xl font-bold text-purple-700 mb-4 text-center">
-          🧾 Attendance Form
+          Attendance Form
         </h1>
         <p className="text-center text-gray-600 mb-4">
-          Date: <strong>{date}</strong>
+          Date: <strong>{date || "Today"}</strong>
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -68,6 +79,7 @@ const StudentForm = () => {
             onChange={handleChange}
             placeholder="Full Name"
             className="p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+            required
           />
           <input
             type="text"
@@ -76,6 +88,7 @@ const StudentForm = () => {
             onChange={handleChange}
             placeholder="Course"
             className="p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+            required
           />
           <button
             type="submit"
@@ -88,10 +101,14 @@ const StudentForm = () => {
         {message && (
           <p
             className={`mt-4 text-center font-semibold ${
-              message.startsWith("✅") ? "text-green-600" : "text-red-600"
+              message.type === "success"
+                ? "text-green-600"
+                : message.type === "error"
+                ? "text-red-600"
+                : "text-blue-600"
             }`}
           >
-            {message}
+            {message.text}
           </p>
         )}
       </div>
