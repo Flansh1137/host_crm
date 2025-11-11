@@ -31,7 +31,7 @@ const StudentForm = () => {
     }
 
     // Replace with your Google Apps Script Web App /exec URL
-    const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOY_ID/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxXgNLeKL6Q3frAwENOLQkCU3csJ1_t3ru3fAdlcnFzyOi1n3pDvCJgaSoVQRMlfNhE/exec";
 
     const body = new URLSearchParams();
     body.append("name", name.trim());
